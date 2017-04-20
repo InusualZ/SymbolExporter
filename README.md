@@ -2,8 +2,8 @@
 This software would let you export symbols and vtables from an ELF File to it's counterpart in C++
 
 # Options
-`-i` or `--input` - It's the ELF File to be parse. Obligatory
-`-o` or	`--output` - Where you want to store the output. Default `output/`
+* `-i` or `--input` - It's the ELF File to be parse. Obligatory
+* `-o` or	`--output` - Where you want to store the output. Default `output/`
 
 # Compiling
 This software have to be compiled in a GCC Compiler. MingGW works fine.
