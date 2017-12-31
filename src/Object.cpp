@@ -1,7 +1,7 @@
 #include "Object.h"
 
 Object::Object(Type objectType, std::string objectName, Symbol32* originalSymbol)
-: type(objectType), name(std::move(objectName)), symbol(originalSymbol), vtable(nullptr) {}
+        : type(objectType), name(std::move(objectName)), symbol(originalSymbol), vtable(nullptr) {}
 
 
 Object* Object::getChild(const std::string& objectName) {
@@ -35,7 +35,7 @@ void Object::setVTable(VTable* newVTable) {
 }
 
 std::ostream& operator<<(std::ostream& stream, const Object& object) {
-    switch(object.type) {
+    switch (object.type) {
         case Object::Type::NAMESPACE:
             stream << "namespace " << object.name << " {\n\n";
 
@@ -46,8 +46,7 @@ std::ostream& operator<<(std::ostream& stream, const Object& object) {
             stream << "\n};\n";
             break;
 
-        case Object::Type::CLASS:
-        {
+        case Object::Type::CLASS: {
             stream << "class " << object.name << " {\n\npublic:\n";
             if (object.vtable) {
                 bool haveDestructor = false;

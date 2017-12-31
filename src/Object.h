@@ -10,7 +10,6 @@
 
 struct Object {
     enum Type {
-        NONE,
         NAMESPACE,
         CLASS,
         METHOD,
@@ -21,7 +20,7 @@ struct Object {
     std::string name;
     Symbol32* symbol;
     std::vector<Object*> childs;
-	VTable* vtable;
+    VTable* vtable;
 
     Object(Type objectType, std::string objectName, Symbol32* originalSymbol);
 

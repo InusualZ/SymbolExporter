@@ -17,11 +17,12 @@
 #include "VTable.h"
 
 static std::vector<VTable> vtables;
-static Symbol32 pureVirtualSymbol(std::numeric_limits<uint32_t>::max(), "pure_virtual", "__cxa_pure_virtual", 0, 0, 4, 0x00, 0x00, 1, 0x00);
+static Symbol32 pureVirtualSymbol(std::numeric_limits<uint32_t>::max(), "pure_virtual", "__cxa_pure_virtual",
+                                  0, 0, 4, 0x00, 0x00, 1, 0x00);
 
 bool getVTablesContent(ELFIO::elfio& reader, std::vector<VTable>& vtables, std::vector<Symbol32>& symbols) {
     using namespace ELFIO;
-    const auto &section = reader.sections[8];
+    const auto& section = reader.sections[8];
     if (section == nullptr) {
         return false;
     }
@@ -29,8 +30,8 @@ bool getVTablesContent(ELFIO::elfio& reader, std::vector<VTable>& vtables, std::
     relocation_section_accessor accessor(reader, section);
     for (Elf_Xword entry = 0; entry < accessor.get_entries_num(); ++entry) {
         Elf64_Addr offset = 0;
-        Elf_Word   symbolOffset = 0;
-        Elf_Word   type;
+        Elf_Word symbolOffset = 0;
+        Elf_Word type;
         Elf_Sxword addend;
         if (accessor.get_entry(entry, offset, symbolOffset, type, addend)) {
             for (auto& table : vtables) {
@@ -56,7 +57,8 @@ bool getVTablesContent(ELFIO::elfio& reader, std::vector<VTable>& vtables, std::
     return true;
 }
 
-std::vector<Symbol32> getSymbols(const ELFIO::endianess_convertor& convertor, const ELFIO::section& section, const ELFIO::section& stringSection) {
+std::vector<Symbol32> getSymbols(const ELFIO::endianess_convertor& convertor, const ELFIO::section& section,
+                                 const ELFIO::section& stringSection) {
     auto entriesCount = section.get_size() / section.get_entry_size();
     std::vector<Symbol32> entries;
     for (uint32_t i = 0; i < entriesCount; ++i) {
@@ -85,7 +87,11 @@ std::vector<Symbol32> getSymbols(const ELFIO::endianess_convertor& convertor, co
         }
 
         // Discard, standard method symbols && typeinfo symbol
-        if ((name[2] == 'N' && name[3] == 'S' && name[4] == 't') || (name[2] == 'T' && (name[3] == 'I' || (name [3] == 'V' && name[4] == 'S' && name[5] == 't') || name[3] == 'S'))) {
+        if ((name[2] == 'N' && name[3] == 'S' && name[4] == 't') || (name[2] == 'T' && (name[3] == 'I' ||
+                                                                                        (name[3] == 'V' &&
+                                                                                         name[4] == 'S' &&
+                                                                                         name[5] == 't') ||
+                                                                                        name[3] == 'S'))) {
             continue;
         }
 
@@ -98,7 +104,9 @@ std::vector<Symbol32> getSymbols(const ELFIO::endianess_convertor& convertor, co
         // Check if it's a virtual table symbol
         if (sectionIndex == 17) {
             if (std::strncmp(name, "_ZTV", 4) == 0) {
-                vtables.emplace_back(new Symbol32(i, demangled, name, nameOffset, valueOffset, size, bind, type, sectionIndex, other));
+                vtables.emplace_back(
+                        new Symbol32(i, demangled, name, nameOffset, valueOffset, size, bind, type, sectionIndex,
+                                     other));
             }
         }
     }
@@ -109,7 +117,8 @@ int main(int argc, const char** argv) {
     optparse::OptionParser parser = optparse::OptionParser().description("SymbolExporter v1.0");
 
     parser.add_option("-i", "--input").dest("input").help("ELF File").metavar("FILE");
-    parser.add_option("-o", "--output").dest("output").set_default("output/").help("Folder where the output would be stored");
+    parser.add_option("-o", "--output").dest("output").set_default("output/").help(
+            "Folder where the output would be stored");
 
     const optparse::Values options = parser.parse_args(argc, argv);
 
@@ -133,8 +142,8 @@ int main(int argc, const char** argv) {
     }
 
 
-	ELFIO::elfio reader;
-	if (!reader.load(inputFile)) {
+    ELFIO::elfio reader;
+    if (!reader.load(inputFile)) {
         std::cerr << "FAILED TO LOAD BINARY: " << inputFile << std::endl;
         return 1;
     }
@@ -144,7 +153,7 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
-	std::cout << "Let's read the Symbols" << '\n';
+    std::cout << "Let's read the Symbols" << '\n';
 
     const auto& symSection = reader.sections[".dynsym"];
     if (symSection == nullptr) {
@@ -158,7 +167,7 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
-	auto symbols = getSymbols(reader.get_convertor(), *symSection, *stringSection);
+    auto symbols = getSymbols(reader.get_convertor(), *symSection, *stringSection);
     std::cout << "The # of symbol read was: " << symbols.size() << '\n';
 
     std::cout << "VTables Identified: " << vtables.size() << '\n';
@@ -209,6 +218,6 @@ int main(int argc, const char** argv) {
 
     std::cout << "DONE!\n";
 
-	return 0;
+    return 0;
 }
 

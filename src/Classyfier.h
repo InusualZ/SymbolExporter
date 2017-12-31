@@ -19,20 +19,24 @@ private:
 
 public:
     explicit Classyfier(const std::vector<Symbol32>& symbolRepo);
+
     explicit Classyfier(const std::vector<Symbol32>& symbolRepo, const std::vector<std::string>& blacklist);
 
     void setSymbols(const std::vector<Symbol32>& symbolRepo);
+
     const std::vector<Symbol32>& getSymbols() const;
 
     void setVTables(const std::vector<VTable>& vtableRepo);
+
     const std::vector<VTable>& getVTables() const;
 
     void setBlacklistClasses(const std::vector<std::string>& blacklist);
+
     const std::vector<std::string>& getBlacklist() const;
 
     const std::vector<Object*>& getObjects() const;
 
-	uint32_t parse();
+    uint32_t parse();
 
     bool parse(Symbol32& symbol);
 
