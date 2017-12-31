@@ -64,7 +64,7 @@ class string_section_accessor
         Elf_Word current_position = 0;
         
         if (string_section) {
-            // Strings are addeded to the end of the current section data
+            // Strings are added to the end of the current section data
             current_position = (Elf_Word)string_section->get_size();
 
             if ( current_position == 0 ) {

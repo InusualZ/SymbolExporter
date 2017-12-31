@@ -2,17 +2,17 @@
 
 #include <regex>
 
-Classyfier::Classyfier(const std::vector<Symbol>& symbolRepo) 
+Classyfier::Classyfier(const std::vector<Symbol32>& symbolRepo)
     : symbols(symbolRepo) {}
 
-Classyfier::Classyfier(const std::vector<Symbol>& symbolRepo, const std::vector<std::string>& blacklist) 
+Classyfier::Classyfier(const std::vector<Symbol32>& symbolRepo, const std::vector<std::string>& blacklist)
     : symbols(symbolRepo), blacklistClasses(blacklist) {}
 
-void Classyfier::setSymbols(const std::vector<Symbol>& symbolRepo) {
+void Classyfier::setSymbols(const std::vector<Symbol32>& symbolRepo) {
     symbols = symbolRepo;
 }
 
-const std::vector<Symbol>& Classyfier::getSymbols() const {
+const std::vector<Symbol32>& Classyfier::getSymbols() const {
     return symbols;
 }
 
@@ -35,21 +35,19 @@ const std::vector<Object*>& Classyfier::getObjects() const {
     return objects;
 }
 
-uint32 Classyfier::parse() {
-	uint32 skipped = 0;
-	for (const auto& symbol : symbols) {
-		if (symbol) {
-			if (!parse(symbol)) {
-				++skipped;
-			}
+uint32_t Classyfier::parse() {
+	uint32_t skipped = 0;
+	for (auto& symbol : symbols) {
+		if (!parse(symbol)) {
+			++skipped;
 		}
 	}
 
 	return skipped;
 }
 
-bool Classyfier::parse(const Symbol& symbol) {
-    const auto& values = Classyfier::extractValues(symbol.getSymbol());
+bool Classyfier::parse(Symbol32& symbol) {
+    const auto& values = Classyfier::extractValues(symbol.demangled);
 	if (values.size() > 1) {
 		if (!std::regex_match(values[0], std::regex("^[a-zA-Z_]{1}[a-zA-Z_0-9]+$"))) {
 			return false;
@@ -61,45 +59,42 @@ bool Classyfier::parse(const Symbol& symbol) {
 			}
 		}
 
+        // Block::init()
 		std::string it;
 		Object* parent = nullptr;
 		for (std::size_t index = 0; index < values.size(); index++) {
 			it = values[index];
 			if (parent == nullptr) {
 				for (const auto& object : objects) {
-					if (object->getName() == it) {
+					if (object->name == it) {
 						parent = object;
 						break;
 					}
 				}
 
 				if (parent == nullptr) {
-					parent = new Object(Object::Type::NAMESPACE, it);
+					parent = new Object(Object::Type::NAMESPACE, it, &symbol);
 					objects.push_back(parent);
 				}
 			} else {
 				Object* tmp = parent->getChild(it);
 				if (tmp == nullptr) {
 					if (index == values.size() - 1) {
-						Object::Type type = it.find("(") != std::string::npos ? Object::Type::METHOD : Object::Type::FIELD;
-						tmp = new Object(type, it);
+						Object::Type type = it.find('(') != std::string::npos ? Object::Type::METHOD : Object::Type::FIELD;
+						tmp = new Object(type, it, &symbol);
 
 						if (type == Object::Type::METHOD) {
-							if ("~" + parent->getName() + "()" == it) {
-								tmp->getSymbol().isDestructor = true;
-							}
-
-							if (std::regex_match(it, std::regex(parent->getName() + "\\(.+"))) {
-								tmp->getSymbol().isConstructor = true;
+							if (std::regex_match(it, std::regex(parent->name + "\\(.+"))) {
+                                tmp->symbol->isConstructor = true;
 							}
 						}
 
-						parent->setType(Object::Type::CLASS);
+						parent->type = Object::Type::CLASS;
 					} else {
-						tmp = new Object(Object::Type::NAMESPACE, it);
+						tmp = new Object(Object::Type::NAMESPACE, it, &symbol);
 					}
 
-					parent->addChild(tmp);
+					parent->childs.push_back(tmp);
 				}
 
 				parent = tmp;
