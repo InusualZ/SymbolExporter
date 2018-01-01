@@ -182,6 +182,7 @@ int main(int argc, const char** argv) {
     outputFile.close();
 
     std::cout << "Writing Virtual Tables to disk\n";
+    std::cout << outputFolder + "vtables.txt" << '\n';
     outputFile.open(outputFolder + "vtables.txt", std::ios_base::out | std::ios_base::trunc);
     for (const auto& table : vtables) {
         outputFile << '\n' << table.symbol->demangled << '\n';
@@ -197,20 +198,27 @@ int main(int argc, const char** argv) {
     std::cout << converter.parse() << " types have been skipped\n";
 
     std::cout << "Linking VTables\n";
-    for (auto& vtable : vtables) {
+    for (auto& table : vtables) {
         for (const auto& object : converter.getObjects()) {
-            const auto& child = object->getChild(vtable.name);
+            const auto& child = object->getChild(table.name);
             if (child != nullptr) {
-                child->setVTable(&vtable);
+                child->setVTable(&table);
             }
         }
     }
 
+    // Separate headers
+    outputFolder += "Headers/";
+
     std::cout << "Writting to disk " << converter.getObjects().size() << " classes\n";
+
+    // Create folder
     mkdir(outputFolder.c_str(), 0777);
 
+    // Serialize objects to class
+    std::ofstream clazz;
     for (const auto& object : converter.getObjects()) {
-        std::ofstream clazz(outputFolder + object->name + ".h", std::ios_base::out | std::ios_base::trunc);
+        clazz.open(outputFolder + object->name + ".h", std::ios_base::out | std::ios_base::trunc);
         clazz << "#pragma once\n\n";
         clazz << *object;
         clazz.close();
