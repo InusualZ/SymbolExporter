@@ -56,10 +56,18 @@ std::ostream& operator<<(std::ostream& stream, const Object& object) {
                     }
 
                     if (!symbol.second->isDestructor) {
+                        if (Object::commentMangledSymbol) {
+                            stream << "\t// @symbol " << symbol.second->mangled << '\n';
+                        }
+
                         stream << "\tvirtual void "
                                << std::regex_replace(symbol.second->demangled, std::regex(".+?[:]{2}(.+)$"), "$1")
                                << ";\n";
                     } else if (!haveDestructor) {
+                        if (Object::commentMangledSymbol) {
+                            stream << "\t// @symbol " << symbol.second->mangled << '\n';
+                        }
+
                         stream << "\tvirtual " << symbol.second->demangled + object.name.length() + 2 << ";\n";
                         haveDestructor = true;
                     }
@@ -71,6 +79,10 @@ std::ostream& operator<<(std::ostream& stream, const Object& object) {
             for (std::vector<Object*>::const_iterator it = copyList.begin(); it != copyList.end();) {
                 const auto& child = *it;
                 if (child->type == Object::Type::METHOD && !child->symbol->isStatic) {
+                    if (Object::commentMangledSymbol) {
+                        stream << "\t// @symbol " << child->symbol->mangled << '\n';
+                    }
+
                     stream << '\t' << *child;
                     it = copyList.erase(it);
                 } else {
@@ -82,6 +94,10 @@ std::ostream& operator<<(std::ostream& stream, const Object& object) {
             for (std::vector<Object*>::const_iterator it = copyList.begin(); it != copyList.end();) {
                 const auto& child = *it;
                 if (child->type == Object::Type::METHOD && child->symbol->isStatic) {
+                    if (Object::commentMangledSymbol) {
+                        stream << "\t// @symbol " << child->symbol->mangled << '\n';
+                    }
+
                     stream << "\tstatic " << *child;
                     it = copyList.erase(it);
                 } else {
@@ -93,6 +109,10 @@ std::ostream& operator<<(std::ostream& stream, const Object& object) {
             for (std::vector<Object*>::const_iterator it = copyList.begin(); it != copyList.end();) {
                 const auto& child = *it;
                 if (child->type == Object::Type::FIELD) {
+                    if (Object::commentMangledSymbol) {
+                        stream << "\t// @symbol " << child->symbol->mangled << '\n';
+                    }
+
                     stream << "\tstatic " << *child;
                     it = copyList.erase(it);
                 } else {
@@ -101,6 +121,10 @@ std::ostream& operator<<(std::ostream& stream, const Object& object) {
             }
 
             for (const auto& child : copyList) {
+                if (Object::commentMangledSymbol) {
+                    stream << "\t// @symbol " << child->symbol->mangled << '\n';
+                }
+
                 stream << *child;
             }
 

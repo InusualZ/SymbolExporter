@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -116,9 +117,12 @@ std::vector<Symbol32> getSymbols(const ELFIO::endianess_convertor& convertor, co
 int main(int argc, const char** argv) {
     optparse::OptionParser parser = optparse::OptionParser().description("SymbolExporter v1.0");
 
-    parser.add_option("-i", "--input").dest("input").help("ELF File").metavar("FILE");
-    parser.add_option("-o", "--output").dest("output").set_default("output/").help(
-            "Folder where the output would be stored");
+    parser.add_option("-i", "--input").dest("input").help("ELF File").
+            metavar("FILE");
+    parser.add_option("-o", "--output").dest("output").set_default("output/").
+            help("Folder where the output would be stored");
+    parser.add_option("-m", "--mangled").dest("writeMangled").
+            help("Would write mangled symbol on comment form before the demangled symbol");
 
     const optparse::Values options = parser.parse_args(argc, argv);
 
@@ -141,6 +145,7 @@ int main(int argc, const char** argv) {
         outputFolder += '/';
     }
 
+    Object::commentMangledSymbol = options.is_set("writeMangled");
 
     ELFIO::elfio reader;
     if (!reader.load(inputFile)) {
@@ -177,12 +182,11 @@ int main(int argc, const char** argv) {
     std::cout << "Writing Symbols to disk\n";
     std::ofstream outputFile(outputFolder + "symbols.txt", std::ios_base::out | std::ios_base::trunc);
     for (const auto& symbol : symbols) {
-        outputFile << symbol.demangled << '\n';
+        outputFile << "[0x" << std::setfill('0') << std::setw(8) << std::hex << symbol.valueOffset - 1 << "] " << symbol.demangled << '\n';
     }
     outputFile.close();
 
     std::cout << "Writing Virtual Tables to disk\n";
-    std::cout << outputFolder + "vtables.txt" << '\n';
     outputFile.open(outputFolder + "vtables.txt", std::ios_base::out | std::ios_base::trunc);
     for (const auto& table : vtables) {
         outputFile << '\n' << table.symbol->demangled << '\n';
