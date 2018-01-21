@@ -9,7 +9,7 @@
 #include "VTable.h"
 
 struct Object {
-    static bool commentMangledSymbol = false; // The mangled symbol would be write before the demangled symbol in comment form
+    static bool commentMangledSymbol; // The mangled symbol would be write before the demangled symbol in comment form
     enum Type {
         NAMESPACE,
         CLASS,

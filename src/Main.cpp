@@ -70,7 +70,7 @@ std::vector<Symbol32> getSymbols(const ELFIO::endianess_convertor& convertor, co
         uint32_t valueOffset = convertor(pSym->st_value);
         uint32_t size = convertor(pSym->st_size);
         unsigned char bind = ELF_ST_BIND(pSym->st_info);
-        unsigned char type = static_cast<unsigned char>(ELF_ST_TYPE(pSym->st_info));
+        auto type = static_cast<unsigned char>(ELF_ST_TYPE(pSym->st_info));
         uint16_t sectionIndex = convertor(pSym->st_shndx);
         unsigned char other = pSym->st_other;
 
@@ -97,7 +97,7 @@ std::vector<Symbol32> getSymbols(const ELFIO::endianess_convertor& convertor, co
         }
 
         // Demangled
-        const char* demangled = demangle(name);
+        const char* demangled = Symbol32::demangle(name);
 
         // Push Symbol
         entries.emplace_back(i, demangled, name, nameOffset, valueOffset, size, bind, type, sectionIndex, other);
@@ -147,12 +147,15 @@ int main(int argc, const char** argv) {
 
     Object::commentMangledSymbol = options.is_set("writeMangled");
 
+    auto startTime = std::chrono::high_resolution_clock::now();
+
     ELFIO::elfio reader;
     if (!reader.load(inputFile)) {
         std::cerr << "FAILED TO LOAD BINARY: " << inputFile << std::endl;
         return 1;
     }
 
+    // TODO: Remove this restriction!
     if (reader.get_class() != ELFCLASS32) {
         std::cerr << "Only Elf 32bit is supported! Contact Developer!\n";
         return 1;
@@ -179,8 +182,21 @@ int main(int argc, const char** argv) {
     getVTablesContent(reader, vtables, symbols);
     std::cout << "Done! Gathering their information\n";
 
+    // Creating output dir
+    int res = mkdir(outputFolder.c_str(), 777);
+    if (res != 0 && errno != 17) {
+        std::cout << "Error, creating output folder. Make sure to give the program the appropiate permission.\n";
+        std::cout << "Errno(" << errno << "): " << std::strerror(errno);
+        return 1;
+    }
+
     std::cout << "Writing Symbols to disk\n";
     std::ofstream outputFile(outputFolder + "symbols.txt", std::ios_base::out | std::ios_base::trunc);
+    if (!outputFile.good()) {
+        std::cout << "Unable to write Symbol to disk.\n";
+        return 1;
+    }
+
     for (const auto& symbol : symbols) {
         outputFile << "[0x" << std::setfill('0') << std::setw(8) << std::hex << symbol.valueOffset - 1 << "] " << symbol.demangled << '\n';
     }
@@ -188,6 +204,11 @@ int main(int argc, const char** argv) {
 
     std::cout << "Writing Virtual Tables to disk\n";
     outputFile.open(outputFolder + "vtables.txt", std::ios_base::out | std::ios_base::trunc);
+    if (!outputFile.good()) {
+        std::cout << "Unable to write Virtual Tables to disk.\n";
+        return 1;
+    }
+
     for (const auto& table : vtables) {
         outputFile << '\n' << table.symbol->demangled << '\n';
         for (const auto& it : table.content) {
@@ -214,21 +235,34 @@ int main(int argc, const char** argv) {
     // Separate headers
     outputFolder += "Headers/";
 
-    std::cout << "Writting to disk " << converter.getObjects().size() << " classes\n";
-
     // Create folder
-    mkdir(outputFolder.c_str(), 0777);
+    res = mkdir(outputFolder.c_str(), 777);
+    if (res != 0 && errno != 17) {
+        std::cout << "Error, creating header output folder. Make sure to give the program the appropriate permission.\n";
+        std::cout << "Errno(" << errno << "): " << std::strerror(errno);
+        return 1;
+    }
+
+    std::cout << "Writing to disk " << converter.getObjects().size() << " classes\n";
 
     // Serialize objects to class
     std::ofstream clazz;
     for (const auto& object : converter.getObjects()) {
         clazz.open(outputFolder + object->name + ".h", std::ios_base::out | std::ios_base::trunc);
+        if (!clazz.good()) {
+            std::cout << "Unable to write to: " << (outputFolder + object->name + ".h") << '\n';
+            clazz.close();
+            continue;
+        }
+
         clazz << "#pragma once\n\n";
         clazz << *object;
         clazz.close();
     }
 
-    std::cout << "DONE!\n";
+    auto endTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime);
+
+    std::cout << "Done! It took " << endTime.count() << "ms\n";
 
     return 0;
 }

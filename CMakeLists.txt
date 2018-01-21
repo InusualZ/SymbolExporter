@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.7)
-project(SymbolExporter)
+cmake_minimum_required(VERSION 3.5)
+project(SymbolExporter CXX)
 
 if (MSVC)
     message(FATAL_ERROR "Sorry, Visual Studio is not supported. Only MinGW")
-endif (MSVC)
+endif ()
 
 set(NAME "SymbolExporter")
 set(CMAKE_CXX_STANDARD 11)
@@ -12,7 +12,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -Wall -static-libgcc -static-libs
 set(SRC
         src/Classyfier.cpp
         src/Main.cpp
-        src/Object.cpp)
+        src/Object.cpp
+        src/Symbol32.cpp
+        src/VTable.cpp)
 
 set(INCLUDES
         src/elfio/elf_types.hpp

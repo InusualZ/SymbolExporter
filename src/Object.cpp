@@ -1,5 +1,7 @@
 #include "Object.h"
 
+bool Object::commentMangledSymbol = false;
+
 Object::Object(Type objectType, std::string objectName, Symbol32* originalSymbol)
         : type(objectType), name(std::move(objectName)), symbol(originalSymbol), vtable(nullptr) {}
 

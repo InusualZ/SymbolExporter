@@ -3,11 +3,21 @@ This software would let you export symbols and vtables from an ELF File to it's 
 
 # Options
 * `-i` or `--input` - It's the ELF File to be parse. Obligatory
-* `-o` or	`--output` - Where you want to store the output. Default `output/`
+* `-o` or `--output` - Where you want to store the output. Default `output/`
+* `-m` or `--mangled` - Would write mangled symbol on comment form before the demangled symbol
+
+# Compiling Requirement
+* GCC v5.4 or MinGW (Might work but you may need to tweak some file first. If you do please make an PR, It would be greatly appreciated)
+* CMake v3.5
+* Git (Optional: You could download the source directly from the repo)
 
 # Compiling
-This software have to be compiled in a GCC Compiler. MingGW works fine.
-Use the makefile
+* `git clone https//github.com/InusualZ/SymbolExporter`
+* `cd SymbolExporter`
+* `mkdir build && cd build`
+* `cmake ..`
+* `make`
+Yay! You have compiled the program! Enjoy!
 
 # Disclaimer
 ```
