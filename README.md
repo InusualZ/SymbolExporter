@@ -12,11 +12,12 @@ This software would let you export symbols and vtables from an ELF File to it's 
 * Git (Optional: You could download the source directly from the repo)
 
 # Compiling
-* `git clone https//github.com/InusualZ/SymbolExporter`
+* `git clone https://github.com/InusualZ/SymbolExporter`
 * `cd SymbolExporter`
 * `mkdir build && cd build`
 * `cmake ..`
 * `make`
+
 Yay! You have compiled the program! Enjoy!
 
 # Disclaimer
