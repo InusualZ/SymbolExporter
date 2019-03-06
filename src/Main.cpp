@@ -183,7 +183,7 @@ int main(int argc, const char** argv) {
     std::cout << "Done! Gathering their information\n";
 
     // Creating output dir
-    int res = mkdir(outputFolder.c_str(), 777);
+    int res = mkdir(outputFolder.c_str(), 0755);
     if (res != 0 && errno != 17) {
         std::cout << "Error, creating output folder. Make sure to give the program the appropiate permission.\n";
         std::cout << "Errno(" << errno << "): " << std::strerror(errno);
@@ -236,7 +236,7 @@ int main(int argc, const char** argv) {
     outputFolder += "Headers/";
 
     // Create folder
-    res = mkdir(outputFolder.c_str(), 777);
+    res = mkdir(outputFolder.c_str(), 0755);
     if (res != 0 && errno != 17) {
         std::cout << "Error, creating header output folder. Make sure to give the program the appropriate permission.\n";
         std::cout << "Errno(" << errno << "): " << std::strerror(errno);
